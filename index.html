@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cranial Nerve Quiz</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: system-ui, sans-serif; background: #f8f7f4; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+body { font-family: system-ui, sans-serif; background: #f8f7f4; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+
 .wrap { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+
 .toggle-row { display: flex; background: #e8e6e0; border-radius: 999px; padding: 3px; }
 .tog { padding: 7px 22px; border: none; background: transparent; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; color: #888; transition: all 0.2s; }
 .tog.on { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+
 .progress-wrap { width: 100%; display: flex; align-items: center; gap: 10px; }
 .prog-bar { flex: 1; height: 5px; background: #e0ddd6; border-radius: 3px; overflow: hidden; }
 .prog-fill { height: 100%; background: #1D9E75; border-radius: 3px; transition: width 0.4s ease; }
 .prog-lbl { font-size: 12px; color: #aaa; font-weight: 600; min-width: 36px; text-align: right; }
-.card { width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e0ddd6; min-height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; position: relative; }
+
+.card { width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e0ddd6; min-height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; position: relative; overflow: hidden; }
 .big { font-size: 2.8rem; font-weight: 700; color: #111; text-align: center; line-height: 1.1; }
+
 .btns { display: flex; gap: 10px; width: 100%; }
 .abtn { flex: 1; padding: 14px 6px; border-radius: 14px; border: 1.5px solid #ddd; background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; color: #222; transition: background 0.15s, border-color 0.15s; }
 .abtn:hover:not(:disabled) { background: #f5f4f0; }
@@ -21,6 +29,7 @@ body { font-family: system-ui, sans-serif; background: #f8f7f4; min-height: 100v
 .abtn.no { background: #fcebeb; border-color: #e24b4a; color: #a32d2d; animation: shk 0.4s ease; }
 .abtn:disabled { opacity: 0.6; cursor: default; }
 @keyframes shk { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+
 .score { font-size: 13px; color: #999; }
 .score b { color: #555; }
 .streak { font-size: 12px; font-weight: 700; color: #0F6E56; background: #e1f5ee; padding: 3px 10px; border-radius: 999px; display: none; }
@@ -71,7 +80,6 @@ canvas { position: absolute; inset: 0; pointer-events: none; border-radius: 20px
   <div class="results-card">
     <div style="font-size:2rem;">🧠</div>
     <h2>Round Complete!</h2>
-
     <div class="stat-row">
       <div class="stat-box green">
         <div class="num" id="rCorrect">—</div>
@@ -86,19 +94,11 @@ canvas { position: absolute; inset: 0; pointer-events: none; border-radius: 20px
         <div class="lbl">Total attempts</div>
       </div>
     </div>
-
     <div class="accuracy-bar-wrap">
-      <div class="accuracy-lbl">
-        <span>Accuracy</span>
-        <span id="rPct">—</span>
-      </div>
-      <div class="accuracy-bar-bg">
-        <div class="accuracy-bar-fill" id="rBar" style="width:0%; background:#1D9E75;"></div>
-      </div>
+      <div class="accuracy-lbl"><span>Accuracy</span><span id="rPct">—</span></div>
+      <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" id="rBar" style="width:0%;"></div></div>
     </div>
-
     <div class="remark" id="rRemark">—</div>
-
     <button class="replay-btn" onclick="restart()">Play Again</button>
   </div>
 </div>
@@ -202,26 +202,26 @@ function guess(choice) {
 
 function showResults() {
   stopConfetti();
-  var missed = 12 - firstTryCorrect;
-  var pct = Math.round((firstTryCorrect/12)*100);
-  var barColor = pct===100 ? '#1D9E75' : pct>=75 ? '#378ADD' : pct>=50 ? '#EF9F27' : '#e24b4a';
-  var remarks = [
-    [100, 'Perfect — first try on every nerve!'],
-    [83,  'Really strong — just a couple of slip-ups.'],
-    [67,  'Solid round. A few nerves to review.'],
-    [50,  'Getting there — keep drilling those tricky ones.'],
-    [0,   'Lots of room to grow — another round will help!']
+  var missed=12-firstTryCorrect;
+  var pct=Math.round((firstTryCorrect/12)*100);
+  var barColor=pct===100?'#1D9E75':pct>=75?'#378ADD':pct>=50?'#EF9F27':'#e24b4a';
+  var remarks=[
+    [100,'Perfect — first try on every nerve!'],
+    [83, 'Really strong — just a couple of slip-ups.'],
+    [67, 'Solid round. A few nerves to review.'],
+    [50, 'Getting there — keep drilling those tricky ones.'],
+    [0,  'Lots of room to grow — another round will help!']
   ];
-  var remark = remarks[remarks.length-1][1];
+  var remark=remarks[remarks.length-1][1];
   for(var i=0;i<remarks.length;i++){if(pct>=remarks[i][0]){remark=remarks[i][1];break;}}
 
-  document.getElementById('rCorrect').textContent = firstTryCorrect;
-  document.getElementById('rMissed').textContent = missed;
-  document.getElementById('rAttempts').textContent = at;
-  document.getElementById('rPct').textContent = pct + '%';
-  document.getElementById('rBar').style.width = pct + '%';
-  document.getElementById('rBar').style.background = barColor;
-  document.getElementById('rRemark').textContent = remark;
+  document.getElementById('rCorrect').textContent=firstTryCorrect;
+  document.getElementById('rMissed').textContent=missed;
+  document.getElementById('rAttempts').textContent=at;
+  document.getElementById('rPct').textContent=pct+'%';
+  document.getElementById('rBar').style.width=pct+'%';
+  document.getElementById('rBar').style.background=barColor;
+  document.getElementById('rRemark').textContent=remark;
 
   document.getElementById('quizView').style.display='none';
   document.getElementById('resultsView').style.display='flex';
