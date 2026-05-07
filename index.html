@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f8f7f4; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.wrap { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+.toggle-row { display: flex; background: #e8e6e0; border-radius: 999px; padding: 3px; }
+.tog { padding: 7px 22px; border: none; background: transparent; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; color: #888; transition: all 0.2s; }
+.tog.on { background: #fff; color: #111; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+.progress-wrap { width: 100%; display: flex; align-items: center; gap: 10px; }
+.prog-bar { flex: 1; height: 5px; background: #e0ddd6; border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: #1D9E75; border-radius: 3px; transition: width 0.4s ease; }
+.prog-lbl { font-size: 12px; color: #aaa; font-weight: 600; min-width: 36px; text-align: right; }
+.card { width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e0ddd6; min-height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; position: relative; }
+.big { font-size: 2.8rem; font-weight: 700; color: #111; text-align: center; line-height: 1.1; }
+.btns { display: flex; gap: 10px; width: 100%; }
+.abtn { flex: 1; padding: 14px 6px; border-radius: 14px; border: 1.5px solid #ddd; background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; color: #222; transition: background 0.15s, border-color 0.15s; }
+.abtn:hover:not(:disabled) { background: #f5f4f0; }
+.abtn.ok { background: #e1f5ee; border-color: #1D9E75; color: #0F6E56; }
+.abtn.no { background: #fcebeb; border-color: #e24b4a; color: #a32d2d; animation: shk 0.4s ease; }
+.abtn:disabled { opacity: 0.6; cursor: default; }
+@keyframes shk { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+.score { font-size: 13px; color: #999; }
+.score b { color: #555; }
+.streak { font-size: 12px; font-weight: 700; color: #0F6E56; background: #e1f5ee; padding: 3px 10px; border-radius: 999px; display: none; }
+canvas { position: absolute; inset: 0; pointer-events: none; border-radius: 20px; }
+
+.results-card { width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e0ddd6; padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+.results-card h2 { font-size: 1.5rem; font-weight: 700; color: #111; }
+.stat-row { width: 100%; display: flex; gap: 10px; }
+.stat-box { flex: 1; background: #f8f7f4; border-radius: 14px; padding: 1rem; text-align: center; }
+.stat-box .num { font-size: 2rem; font-weight: 800; color: #111; line-height: 1; margin-bottom: 4px; }
+.stat-box .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+.stat-box.green .num { color: #1D9E75; }
+.stat-box.red .num { color: #e24b4a; }
+.accuracy-bar-wrap { width: 100%; }
+.accuracy-bar-bg { width: 100%; height: 8px; background: #f0ede8; border-radius: 4px; overflow: hidden; }
+.accuracy-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.accuracy-lbl { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; margin-bottom: 6px; font-weight: 600; }
+.remark { font-size: 14px; color: #555; text-align: center; font-weight: 500; }
+.replay-btn { width: 100%; padding: 13px; background: #111; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0.25rem; }
+.replay-btn:hover { background: #333; }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="quizView">
+  <div class="toggle-row">
+    <button class="tog on" id="tName" onclick="setMode('name')">Name</button>
+    <button class="tog" id="tNum" onclick="setMode('number')">Number</button>
+  </div>
+  <div class="progress-wrap">
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-lbl" id="progLbl">0 / 12</div>
+  </div>
+  <div class="card" id="card">
+    <canvas id="cv"></canvas>
+    <div class="big" id="disp">—</div>
+  </div>
+  <div class="streak" id="stk">🔥 <span id="stkN">0</span> in a row</div>
+  <div class="btns">
+    <button class="abtn" id="bS" onclick="guess('Sensory')">Sensory</button>
+    <button class="abtn" id="bM" onclick="guess('Motor')">Motor</button>
+    <button class="abtn" id="bB" onclick="guess('Both')">Both</button>
+  </div>
+  <div class="score">Correct: <b id="sc">0</b> &nbsp;/&nbsp; Attempts: <b id="at">0</b></div>
+</div>
+
+<div class="wrap" id="resultsView" style="display:none;">
+  <div class="results-card">
+    <div style="font-size:2rem;">🧠</div>
+    <h2>Round Complete!</h2>
+
+    <div class="stat-row">
+      <div class="stat-box green">
+        <div class="num" id="rCorrect">—</div>
+        <div class="lbl">First-try correct</div>
+      </div>
+      <div class="stat-box red">
+        <div class="num" id="rMissed">—</div>
+        <div class="lbl">Needed retries</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="rAttempts">—</div>
+        <div class="lbl">Total attempts</div>
+      </div>
+    </div>
+
+    <div class="accuracy-bar-wrap">
+      <div class="accuracy-lbl">
+        <span>Accuracy</span>
+        <span id="rPct">—</span>
+      </div>
+      <div class="accuracy-bar-bg">
+        <div class="accuracy-bar-fill" id="rBar" style="width:0%; background:#1D9E75;"></div>
+      </div>
+    </div>
+
+    <div class="remark" id="rRemark">—</div>
+
+    <button class="replay-btn" onclick="restart()">Play Again</button>
+  </div>
+</div>
+
+<script>
+var ALL = [
+  {r:'I',   name:'Olfactory',        type:'Sensory'},
+  {r:'II',  name:'Optic',            type:'Sensory'},
+  {r:'III', name:'Oculomotor',       type:'Motor'},
+  {r:'IV',  name:'Trochlear',        type:'Motor'},
+  {r:'V',   name:'Trigeminal',       type:'Both'},
+  {r:'VI',  name:'Abducens',         type:'Motor'},
+  {r:'VII', name:'Facial',           type:'Both'},
+  {r:'VIII',name:'Vestibulocochlear',type:'Sensory'},
+  {r:'IX',  name:'Glossopharyngeal', type:'Both'},
+  {r:'X',   name:'Vagus',            type:'Both'},
+  {r:'XI',  name:'Accessory',        type:'Motor'},
+  {r:'XII', name:'Hypoglossal',      type:'Motor'}
+];
+
+var mode='name', deck=[], idx=0, cur=null;
+var locked=false, sc=0, at=0, streak=0, firstTryCorrect=0;
+var currentWasWrong=false;
+
+function shuffle(arr) {
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a;
+}
+
+function init() {
+  deck=shuffle(ALL); idx=0; sc=0; at=0; streak=0; firstTryCorrect=0;
+  currentWasWrong=false; locked=false; cur=deck[0];
+  resetBtns(); render(); updateProgress(); updateScore(); updateStreak();
+  document.getElementById('quizView').style.display='flex';
+  document.getElementById('resultsView').style.display='none';
+}
+
+function setMode(m) {
+  mode=m;
+  document.getElementById('tName').className='tog'+(m==='name'?' on':'');
+  document.getElementById('tNum').className='tog'+(m==='number'?' on':'');
+  render();
+}
+
+function render() {
+  if(!cur)return;
+  document.getElementById('disp').textContent = mode==='name' ? cur.name : 'CN '+cur.r;
+}
+
+function updateProgress() {
+  var pct=Math.round((idx/12)*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLbl').textContent=idx+' / 12';
+}
+
+function updateScore() {
+  document.getElementById('sc').textContent=sc;
+  document.getElementById('at').textContent=at;
+}
+
+function updateStreak() {
+  var el=document.getElementById('stk');
+  if(streak>=2){document.getElementById('stkN').textContent=streak;el.style.display='block';}
+  else el.style.display='none';
+}
+
+function resetBtns() {
+  ['bS','bM','bB'].forEach(function(id){var b=document.getElementById(id);b.className='abtn';b.disabled=false;});
+}
+
+function guess(choice) {
+  if(locked)return;
+  locked=true; at++;
+  var map={Sensory:'bS',Motor:'bM',Both:'bB'};
+  var btn=document.getElementById(map[choice]);
+  ['bS','bM','bB'].forEach(function(id){document.getElementById(id).disabled=true;});
+
+  if(choice===cur.type) {
+    sc++; streak++;
+    if(!currentWasWrong) firstTryCorrect++;
+    btn.className='abtn ok';
+    updateScore(); updateStreak(); confetti();
+    setTimeout(function(){
+      stopConfetti(); idx++;
+      updateProgress();
+      if(idx>=12){ showResults(); }
+      else { cur=deck[idx]; currentWasWrong=false; resetBtns(); render(); locked=false; }
+    },1500);
+  } else {
+    streak=0; currentWasWrong=true;
+    btn.className='abtn no';
+    updateScore(); updateStreak();
+    setTimeout(function(){
+      btn.className='abtn'; btn.disabled=false;
+      ['bS','bM','bB'].forEach(function(id){document.getElementById(id).disabled=false;});
+      locked=false;
+    },700);
+  }
+}
+
+function showResults() {
+  stopConfetti();
+  var missed = 12 - firstTryCorrect;
+  var pct = Math.round((firstTryCorrect/12)*100);
+  var barColor = pct===100 ? '#1D9E75' : pct>=75 ? '#378ADD' : pct>=50 ? '#EF9F27' : '#e24b4a';
+  var remarks = [
+    [100, 'Perfect — first try on every nerve!'],
+    [83,  'Really strong — just a couple of slip-ups.'],
+    [67,  'Solid round. A few nerves to review.'],
+    [50,  'Getting there — keep drilling those tricky ones.'],
+    [0,   'Lots of room to grow — another round will help!']
+  ];
+  var remark = remarks[remarks.length-1][1];
+  for(var i=0;i<remarks.length;i++){if(pct>=remarks[i][0]){remark=remarks[i][1];break;}}
+
+  document.getElementById('rCorrect').textContent = firstTryCorrect;
+  document.getElementById('rMissed').textContent = missed;
+  document.getElementById('rAttempts').textContent = at;
+  document.getElementById('rPct').textContent = pct + '%';
+  document.getElementById('rBar').style.width = pct + '%';
+  document.getElementById('rBar').style.background = barColor;
+  document.getElementById('rRemark').textContent = remark;
+
+  document.getElementById('quizView').style.display='none';
+  document.getElementById('resultsView').style.display='flex';
+}
+
+function restart() { init(); }
+
+var particles=[],raf=null;
+function confetti(){
+  var cv=document.getElementById('cv'),card=document.getElementById('card');
+  cv.width=card.offsetWidth;cv.height=card.offsetHeight;
+  var ctx=cv.getContext('2d');
+  var cols=['#1D9E75','#5DCAA5','#378ADD','#D4537E','#EF9F27','#7F77DD'];
+  particles=[];
+  for(var i=0;i<70;i++)particles.push({x:Math.random()*cv.width,y:-10-Math.random()*30,w:6+Math.random()*6,h:7+Math.random()*5,c:cols[Math.floor(Math.random()*cols.length)],vx:(Math.random()-0.5)*4,vy:2+Math.random()*3,a:Math.random()*Math.PI*2,spin:(Math.random()-0.5)*0.18,alpha:1});
+  if(raf)cancelAnimationFrame(raf);
+  function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);var any=false;
+    particles.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.a+=p.spin;p.alpha-=0.02;if(p.alpha>0){any=true;ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();}});
+    if(any)raf=requestAnimationFrame(draw);else ctx.clearRect(0,0,cv.width,cv.height);
+  }
+  draw();
+}
+function stopConfetti(){if(raf){cancelAnimationFrame(raf);raf=null;}var cv=document.getElementById('cv');if(cv)cv.getContext('2d').clearRect(0,0,cv.width,cv.height);}
+
+init();
+</script>
+</body>
+</html>
