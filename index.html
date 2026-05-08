@@ -193,18 +193,10 @@ function guess(choice) {
     btn.className='abtn no';
     updateScore(); updateStreak();
     setTimeout(function(){
-  btn.className='abtn';
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      ['bS','bM','bB'].forEach(function(id){
-        var b = document.getElementById(id);
-        b.disabled = false;
-        b.style.transform = 'translateZ(0)';
-      });
+      btn.className='abtn'; btn.disabled=false;
+      ['bS','bM','bB'].forEach(function(id){document.getElementById(id).disabled=false;});
       locked=false;
-    });
-  });
-},700);
+    },700);
   }
 }
 
