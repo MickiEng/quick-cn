@@ -177,8 +177,9 @@ function guess(choice) {
   ['bS','bM','bB'].forEach(function(id){document.getElementById(id).disabled=true;});
 
   if(choice===cur.type) {
-    sc++; streak++;
-    if(!currentWasWrong) firstTryCorrect++;
+    sc++;
+    if(!currentWasWrong) { streak++; firstTryCorrect++; }
+    else { streak=0; }
     btn.className='abtn ok';
     updateScore(); updateStreak(); confetti();
     setTimeout(function(){
