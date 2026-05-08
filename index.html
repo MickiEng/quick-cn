@@ -186,7 +186,7 @@ function guess(choice) {
       stopConfetti(); idx++;
       updateProgress();
       if(idx>=12){ showResults(); }
-      else { cur=deck[idx]; currentWasWrong=false; resetBtns(); render(); locked=false; }
+      else { cur=deck[idx]; currentWasWrong=false; render(); resetBtns(); locked=false; }
     },1500);
   } else {
     streak=0; currentWasWrong=true;
