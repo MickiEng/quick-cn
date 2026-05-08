@@ -69,9 +69,9 @@ canvas { position: absolute; inset: 0; pointer-events: none; border-radius: 20px
   </div>
   <div class="streak" id="stk">🔥 <span id="stkN">0</span> in a row</div>
   <div class="btns">
-    <button class="abtn" id="bS" onclick="guess('Sensory')">Sensory</button>
-    <button class="abtn" id="bM" onclick="guess('Motor')">Motor</button>
-    <button class="abtn" id="bB" onclick="guess('Both')">Both</button>
+    <button class="abtn" id="bS">Sensory</button>
+    <button class="abtn" id="bM">Motor</button>
+    <button class="abtn" id="bB">Both</button>
   </div>
   <div class="score">Correct: <b id="sc">0</b> &nbsp;/&nbsp; Attempts: <b id="at">0</b></div>
 </div>
@@ -167,7 +167,17 @@ function updateStreak() {
 }
 
 function resetBtns() {
-  ['bS','bM','bB'].forEach(function(id){var b=document.getElementById(id);b.className='abtn';b.disabled=false;});
+  ['bS','bM','bB'].forEach(function(id){
+    var b=document.getElementById(id);
+    var clone=b.cloneNode(true);
+    clone.id=id;
+    clone.className='abtn';
+    clone.disabled=false;
+    clone.style.cssText='';
+    var choice=id==='bS'?'Sensory':id==='bM'?'Motor':'Both';
+    clone.addEventListener('click',function(){ guess(choice); });
+    b.parentNode.replaceChild(clone,b);
+  });
 }
 
 function guess(choice) {
